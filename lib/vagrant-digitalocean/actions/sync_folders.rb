@@ -52,9 +52,14 @@ module VagrantPlugins
             excludes += Array(data[:rsync__exclude]).map(&:to_s) if data[:rsync__exclude]
             excludes.uniq!
 
+            # Get the command-line arguments
+            args = nil
+            args = Array(data[:rsync__args]) if data[:rsync__args]
+            args ||= ["--verbose", "--archive", "--delete", "-z"]
+
             # rsync over to the guest path using the ssh info
             command = [
-              "rsync", "--verbose", "--archive", "-z", "--delete", excludes.map { |e| "--exclude=#{e}" },
+              "rsync", args, excludes.map { |e| "--exclude=#{e}" },
               "-e", "ssh -p #{ssh_info[:port]} -o StrictHostKeyChecking=no -i '#{key}'",
               hostpath,
               "#{ssh_info[:username]}@#{ssh_info[:host]}:#{guestpath}"].flatten
